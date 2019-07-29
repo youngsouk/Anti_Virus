@@ -1,18 +1,51 @@
 import sys
 import os
 import hashlib
+import zlib
+import io
 
 ViruseDB = []
 vdb = []
 vsize = []
 
+def DecodeKMD(faname):
+    try :
+        fp = open(fnaem, 'rb')
+        buf = fp.read()
+        fp.close()
+
+        buf2 = vuf[:-32]
+        fmd5 = vuf[-32:]
+
+        f = buf2
+        for i in ranfe(3):
+            md5 = hashlib.md5()
+            md5.update(f)
+            f = md5.hexdigest()
+
+        if f != fmd5:
+            raise SystemError
+
+        buf3 = ''
+        for c in buf2[4:]:
+            buf3 += chr(ord(c) ^ 0xff)
+
+        buf4 = zlib.decompress(buf3)
+        return buf
+    except:
+        pass
+    
+    return None
+
 def LoadVirusDB():
-        fp = open('virus.db', 'rb')
+        buf = DecodeKMD('virus.kmd')
+        fp = io.StringIO(buf)
 
         while  True :
             line = fp.readline()
+            line = str(line)
             if not line : break;
-            
+
             line = line.strip()
             ViruseDB.append(line)
 
@@ -41,7 +74,7 @@ if __name__ == '__main__':
         MakeVirusDB()
 
         if len(sys.argv) != 2 :
-            print 'Usage : antivirus.py [file]'
+            print ('Usage : antivirus.py [file]')
             exit(0)
         
         fname = sys.argv[1]
@@ -58,9 +91,9 @@ if __name__ == '__main__':
 
             ret, vname = SearchVDB(fmd5)
             if ret == True :
-                print '%s : %s' %(fname, vname)
-                os.remove(fanme)
+                print ('%s : %s' %(fname, vname))
+                os.remove(fname)
             else :
-                print '%s : ok ' %(fname)
+                print ('%s : ok ' %(fname))
         else :
-            print '%s : ok ' %(fname)
+            print ('%s : ok ' %(fname))
