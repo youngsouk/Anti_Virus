@@ -15,10 +15,12 @@ def DecodeKMD(faname):
         fp.close()
 
         buf2 = vuf[:-32]
+        print (str(buf))
         fmd5 = vuf[-32:]
+        print (fmd5)
 
         f = buf2
-        for i in ranfe(3):
+        for i in range(3):
             md5 = hashlib.md5()
             md5.update(f)
             f = md5.hexdigest()
@@ -31,25 +33,26 @@ def DecodeKMD(faname):
             buf3 += chr(ord(c) ^ 0xff)
 
         buf4 = zlib.decompress(buf3)
-        return buf
+        return buf4
     except:
         pass
     
     return None
 
 def LoadVirusDB():
-        buf = DecodeKMD('virus.kmd')
-        fp = io.StringIO(buf)
 
-        while  True :
-            line = fp.readline()
-            line = str(line)
-            if not line : break;
+    buf = DecodeKMD('virus.kmd')
+    fp = io.StringIO(buf)
 
-            line = line.strip()
-            ViruseDB.append(line)
+    while  True :
+        line = fp.readline()
+        line = str(line)
+        if not line : break
 
-        fp.close()
+        line = line.strip()
+        ViruseDB.append(line)
+
+    fp.close()
 
 def MakeVirusDB():
     for pattern in ViruseDB:
@@ -70,30 +73,30 @@ def SearchVDB(fmd5):
     return False, ''
 
 if __name__ == '__main__':
-        LoadVirusDB()
-        MakeVirusDB()
+    LoadVirusDB()
+    MakeVirusDB()
 
-        if len(sys.argv) != 2 :
-            print ('Usage : antivirus.py [file]')
-            exit(0)
-        
-        fname = sys.argv[1]
+    if len(sys.argv) != 2 :
+        print ('Usage : antivirus.py [file]')
+        exit(0)
 
-        size = os.path.getsize(fname)
-        if vsize.count(size) :
-            fp = open(fname, 'rb')
-            buf = fp.read()
-            fp.close()
+    fname = sys.argv[1]
 
-            m = hashlib.md5()
-            m.update(buf)
-            fmd5 = m.hexdigest()
+    size = os.path.getsize(fname)
+    if vsize.count(size) :
+        fp = open(fname, 'rb')
+        buf = fp.read()
+        fp.close()
 
-            ret, vname = SearchVDB(fmd5)
-            if ret == True :
-                print ('%s : %s' %(fname, vname))
-                os.remove(fname)
-            else :
-                print ('%s : ok ' %(fname))
+        m = hashlib.md5()
+        m.update(buf)
+        fmd5 = m.hexdigest()
+
+        ret, vname = SearchVDB(fmd5)
+        if ret == True :
+            print ('%s : %s' %(fname, vname))
+            os.remove(fname)
         else :
             print ('%s : ok ' %(fname))
+    else :
+        print ('%s : ok ' %(fname))
