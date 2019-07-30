@@ -106,9 +106,9 @@ if __name__ == '__main__':
         module = imp.load_module(m, f, filename, desc)
         cmd = 'ret, vname = module.ScanVirus(vdb, vsize, sdb, fname)'
         print ('done!')
-        exec cmd
+        exec(cmd)
     except ImportError :
-        print 'fail!'
+        print ('fail!')
         ret,vname = scanmod.ScanVirus(vdb, vsize, sdb, fname)
     
     if ret == True :
