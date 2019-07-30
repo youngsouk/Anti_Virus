@@ -3,21 +3,28 @@ import os
 import hashlib
 import zlib
 import io
+import io
+import scanmod
+import curemod
 
 ViruseDB = []
 vdb = []
 vsize = []
+sdb = []
 
-def DecodeKMD(faname):
+def DecodeKMD(fname):
+    print ('Try decoding the VirusDB')
     try :
-        fp = open(fnaem, 'rb')
+        fp = open(fname, 'rb')
         buf = fp.read()
         fp.close()
 
-        buf2 = vuf[:-32]
-        print (str(buf))
-        fmd5 = vuf[-32:]
-        print (fmd5)
+#        print ('reading_done')
+        buf2 = buf[:-32]
+#        print (buf2)
+        fmd5 = buf[-32:]
+#        print ('content : %s' % buf2)
+#        print ('md5_hash : %s' % fmd5)
 
         f = buf2
         for i in range(3):
@@ -26,6 +33,7 @@ def DecodeKMD(faname):
             f = md5.hexdigest()
 
         if f != fmd5:
+            print ('VirusDB is modified!!!')
             raise SystemError
 
         buf3 = ''
@@ -33,6 +41,8 @@ def DecodeKMD(faname):
             buf3 += chr(ord(c) ^ 0xff)
 
         buf4 = zlib.decompress(buf3)
+        print ('Decoding complete')
+#        print (buf4)
         return buf4
     except:
         pass
@@ -40,8 +50,8 @@ def DecodeKMD(faname):
     return None
 
 def LoadVirusDB():
-
-    buf = DecodeKMD('virus.kmd')
+    print ('Start Loading VirusDB...')
+    buf = DecodeKMD('virus.kmd').decode()
     fp = io.StringIO(buf)
 
     while  True :
@@ -53,50 +63,46 @@ def LoadVirusDB():
         ViruseDB.append(line)
 
     fp.close()
+#    print (list(ViruseDB))
+    print ('Load_complete!')
+    print ('')
 
 def MakeVirusDB():
     for pattern in ViruseDB:
         t = []
         v = pattern.split(':')
-        t.append(v[1])
-        t.append(v[2])
-        vdb.append(t)
 
-        size = int(v[0])
-        if vsize.count(size) == 0:
-            vsize.append(size)
-    
-def SearchVDB(fmd5):
-    for t in vdb :
-        if t[0] == fmd5 :
-            return True, t[1]
-    return False, ''
+        scan_func = v[0]
+        cure_func = v[1]
+        if scan_func == 'ScanMD5':
+            t.append(v[3])
+            t.append(v[4])
+            vdb.append(t)
+
+            size = int(v[2])
+            if vsize.count(size) == 0:
+                vsize.append(size)
+        elif scan_func == 'ScanStr':
+            t.append(int(v[2]))
+            t.append(v[3])
+            t.append(v[4])
+            sdb.append(t)
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2 :
+        print ('Usage : antivirus.py [file]')
+        sys.exit(0)
+    
     LoadVirusDB()
     MakeVirusDB()
 
-    if len(sys.argv) != 2 :
-        print ('Usage : antivirus.py [file]')
-        exit(0)
-
     fname = sys.argv[1]
 
-    size = os.path.getsize(fname)
-    if vsize.count(size) :
-        fp = open(fname, 'rb')
-        buf = fp.read()
-        fp.close()
-
-        m = hashlib.md5()
-        m.update(buf)
-        fmd5 = m.hexdigest()
-
-        ret, vname = SearchVDB(fmd5)
-        if ret == True :
-            print ('%s : %s' %(fname, vname))
-            os.remove(fname)
-        else :
-            print ('%s : ok ' %(fname))
+    ret,vname = scanmod.ScanVirus(vdb, vsize, sdb, fname)
+    if ret == True :
+        print ('Virus is detected!!')
+        print ('%s : %s' %(fname, vname))
+        curemod.CureDelete(fname)
     else :
         print ('%s : ok ' %(fname))
+
