@@ -3,7 +3,8 @@ import os
 import hashlib
 import zlib
 import io
-import io
+import imp
+
 import scanmod
 import curemod
 
@@ -98,7 +99,18 @@ if __name__ == '__main__':
 
     fname = sys.argv[1]
 
-    ret,vname = scanmod.ScanVirus(vdb, vsize, sdb, fname)
+    try :
+        print ('try importing...')
+        m = 'scanmod'
+        f, filename, desc = imp.find_module(m, [''])
+        module = imp.load_module(m, f, filename, desc)
+        cmd = 'ret, vname = module.ScanVirus(vdb, vsize, sdb, fname)'
+        print ('done!')
+        exec cmd
+    except ImportError :
+        print 'fail!'
+        ret,vname = scanmod.ScanVirus(vdb, vsize, sdb, fname)
+    
     if ret == True :
         print ('Virus is detected!!')
         print ('%s : %s' %(fname, vname))
